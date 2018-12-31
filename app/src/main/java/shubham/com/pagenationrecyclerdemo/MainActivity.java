@@ -13,26 +13,10 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import shubham.com.pagenationrecyclerdemo.networking.MySingleton;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,44 +26,27 @@ public class MainActivity extends AppCompatActivity {
 
     int i = 1;
 
-    //FOR NETWORK REQUESTS
-    RequestQueue queue;
-    public static final String TAG = "MyNetTag";
-
     private ProgressBar progressBar;
 
     //FOR IMPLEMENTING PAGENATION
     Boolean isScrolling = false;
     int currentItems, totalItems, scrollOutItems;
 
-    int COUNTER = 1;
-    int SKIP = 0, LIMIT = 30;
-
-    String todayString = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Date todayDate = Calendar.getInstance().getTime();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        todayString = formatter.format(todayDate);
-
-        //Log.e("DATE", todayString);
-
         // Request a string response from the provided URL
         //String url = "https://simplifiedcoding.net/demos/view-flipper/heroes.php";
-
-        String url2 = "https://stage-api.yapsody.com/online/global/account/order_history?skip=" + SKIP + "&limit=" + LIMIT + "&start_date=" + todayString + "&sort=FL&trans_type=sale";
-
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         progressBar = findViewById(R.id.progressBar);
         progressBar.setProgress(0);
         progressBar.setMax(100);
-        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
 
         mAdapter = new MoviesAdapter(movieList);
         final RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -129,202 +96,38 @@ public class MainActivity extends AppCompatActivity {
                     //FETCH DATA
                     isScrolling = false;
 
-                    SKIP = SKIP + 30;
 
-                    fetchData(SKIP);
+                    fetchData();
 
                 }
 
             }
         });
 
-        //prepareMovieData();
-
-
-
-
-        //GET REQUEST EXAMPLE
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        //textViewResponse.setText("Response is: "+ response.substring(0,500));
-
-                        progressBar.setVisibility(View.GONE);
-
-                        try {
-
-                            JSONObject jsonObject = new JSONObject(response);
-
-                            JSONObject jsonObjectData = jsonObject.getJSONObject("data");
-
-                            Log.e("MY_LENGTH_TAG", String.valueOf(jsonObjectData.getJSONArray("trans").length()));
-
-                            int length = jsonObjectData.getJSONArray("trans").length();
-
-                            JSONArray jsonArrayTrans = jsonObjectData.getJSONArray("trans");
-
-                            for(int j = 0; j < length ; j++) {
-
-                                JSONObject jsonObjectTrans = jsonArrayTrans.getJSONObject(j);
-
-                                Movie movie = new Movie(jsonObjectTrans.getString("ft_order_id") + " : " + COUNTER++, "Action & Adventure", "2015");
-
-                                movieList.add(movie);
-
-                            }
-
-
-                           mAdapter.notifyDataSetChanged();
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-                Log.e("MY_TAG", error.toString());
-                Log.e("MY_TAG", "That didn't work!");
-                //textViewResponse.setText("That didn't work!");
-            }
-        }) {
-            @Override public Map<String, String> getHeaders() {
-
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("Content-Type", "application/x-www-form-urlencoded");
-                params.put("venue-code", "vinaychavan");
-                params.put("authtoken", "eyJhbGciOiJIUzI1NiJ9.NzBlMWZkODAtZWQ1Mi0xMWU4LTg4MDUtZjNkNGRlZjljOWQ3.dipu-miz4D8PdT0cz7m1O7Ky60X1XAXPnhvKmqt5qik");
-
-                return params;
-            }
-        };
-
-
-
-        stringRequest.setTag(TAG);
-
-        // Add a request (in this example, called stringRequest) to your RequestQueue.
-        //MySingleton.getInstance(this).addToRequestQueue(stringRequest);
-
-        // Get a RequestQueue
-        queue = MySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
-        queue.add(stringRequest);
+        prepareMovieData();
 
     }
 
-    @Override
-    protected void onStop () {
 
-        super.onStop();
-        if (queue != null) {
-            queue.cancelAll(TAG);
-        }
-    }
-
-
-    private void fetchData(int SKIP) {
-
-        String url2 = "https://stage-api.yapsody.com/online/global/account/order_history?skip=" + SKIP + "&limit=" + LIMIT + "&start_date=" + todayString + "&sort=FL&trans_type=sale";
+    private void fetchData() {
 
         progressBar.setVisibility(View.VISIBLE);
 
-
-
-        //GET REQUEST EXAMPLE
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        //textViewResponse.setText("Response is: "+ response.substring(0,500));
-
-                        progressBar.setVisibility(View.GONE);
-
-                        try {
-
-                            JSONObject jsonObject = new JSONObject(response);
-
-                            JSONObject jsonObjectData = jsonObject.getJSONObject("data");
-
-                            Log.e("MY_TAG", String.valueOf(jsonObjectData.getJSONArray("trans").length()));
-
-                            int length = jsonObjectData.getJSONArray("trans").length();
-
-                            JSONArray jsonArrayTrans = jsonObjectData.getJSONArray("trans");
-
-                            for(int j = 0; j < length ; j++) {
-
-                                JSONObject jsonObjectTrans = jsonArrayTrans.getJSONObject(j);
-
-                                Movie movie = new Movie(jsonObjectTrans.getString("ft_order_id") + " : " + COUNTER++, "Action & Adventure", "2015");
-
-                                movieList.add(movie);
-
-                            }
-
-                            mAdapter.notifyDataSetChanged();
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-
-                    }
-                }, new Response.ErrorListener() {
+        new Handler().postDelayed(new Runnable() {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void run() {
 
-                Log.e("MY_TAG", error.toString());
-                Log.e("MY_TAG", "That didn't work!");
-                //textViewResponse.setText("That didn't work!");
+                for(int i=1; i <= 35; i++) {
+
+                    Movie movie = new Movie("Mad Max: Fury Road " + i, "Action & Adventure", "2015");
+                    movieList.add(movie);
+
+                    progressBar.setVisibility(View.GONE);
+                }
+                mAdapter.notifyDataSetChanged();
+
             }
-        }) {
-            @Override public Map<String, String> getHeaders() {
-
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("Content-Type", "application/x-www-form-urlencoded");
-                params.put("venue-code", "vinaychavan");
-                params.put("authtoken", "eyJhbGciOiJIUzI1NiJ9.NzBlMWZkODAtZWQ1Mi0xMWU4LTg4MDUtZjNkNGRlZjljOWQ3.dipu-miz4D8PdT0cz7m1O7Ky60X1XAXPnhvKmqt5qik");
-
-                return params;
-            }
-        };
-
-
-
-        stringRequest.setTag(TAG);
-
-        // Add a request (in this example, called stringRequest) to your RequestQueue.
-        //MySingleton.getInstance(this).addToRequestQueue(stringRequest);
-
-        // Get a RequestQueue
-        queue = MySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
-        queue.add(stringRequest);
-
-
-
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//                for(int i=1; i <= 35; i++) {
-//
-//                    Movie movie = new Movie("Mad Max: Fury Road " + i, "Action & Adventure", "2015");
-//                    movieList.add(movie);
-//
-//                    progressBar.setVisibility(View.GONE);
-//                }
-//                mAdapter.notifyDataSetChanged();
-//
-//            }
-//        }, 2000);
+        }, 2000);
 
     }
 
